@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "innlab-mobile-app",
+  "private_key_id": "e14510704c82d4a8af75c0b9cba48884fcb1f69a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCVO1nmrTtWLg+w\nEhp+PZCAmj3cS86qDAXBbuO7yjBf7B/64C1I8zKNHeEKogknV9CnDZEB/74gC9yG\n5qTES5PeR3MKykI6OSbkojYV1NGihkmcK1m2FNZqVsH/RhmHOk6ELqAzeLttIy9h\ntIfI6jbIrUilcUtFA9ybEoOfLu9p9TUvav8ns7zndX40UJCfDuT0amA+iNaVB11e\nRMvpqIN2u1zQpMfc7pSvzXbQAcjr10kB/Egtv6aZCn0/q1qOK13fJGGIkwnaBdbr\ngx39BzKGUwCUVC3ios9KMZCA6Onx1JGqdVRmZ1SlS/2bLq4JrJnD1ky57imbm7ZI\nDpikdsPnAgMBAAECggEAFjmrJ3xYUHr2sinYEUIZAdY27VbK9i9pMghSWXcA4mBX\n2PTHOcyilDrFd+BvDZF6DU8rcAlHJx2tH9g85NE+ugWZIBvEZkh5vuZbuL+j4xkt\n4FjieQg8cMTwCpVFmwq3g98v08qg2124okwRRv5+3z9TiPRJGgO7uMq2mKAUXwrA\nQT61m1RRG12DcQvaK61GycbmQ7hbGUlIPyJtlBrmS7su/h5Z9CtKdyCYl7qedDNw\nuwTtE6GLkxmxNhccGCa9kNiJeo1GZ+tDUAB/irFpxlSQy+x//LvQQ1wArpS9WH90\nu+bS91pdU/rjM2aydYzMihRtkvv+SD7K2OgrLMt0BQKBgQDGpVdoGwmL6WoJ5gYM\nl2iD6RHK0oLIZGv8zADGaM3gdh0MA9e3Aqf4fRxqqyjumzmyY5FMxxY0HN2r1jJZ\nzsadRnyyU18m57zysPYVQToassLNcj14Abm5ZVpqIoE2fUOKl/tl5vTMmcxeMHZ0\nfxY5SPdterUWJ61zrA4B24pCawKBgQDAUaJrXY3yACqDdtGp7cb37v0L2iOysG7a\no7CTBDtDjgB7VYuwsxxaYW22xp3pzq8cTgme3dboiMHxdJXB29ejnKbxBmsIRvHf\nnmS1CNWeOexB3E0IBN/hKFudODFU+aqiIwZVn1GtB9w6yPJtwVGeDcMlFO2jBQKE\n3p8Vald7dQKBgQDFG+99Z8azRCtqIwtBl0OoEK8M+JG5UpwsvijOt9QBtHHiKDX2\nbPZLhama1rfI+9HmhxH4g1wu3a3AAsz3fExsZzL4p+205yIAF0Q3lv+W2maeAYuo\n9t1Zb46l3hMlBGrurRxR4zhphPrbQ29m7WwZ76NEyQvDLh/YtZM4mKW6fQKBgDhi\n9vsBuA9/KvfWi4yGEbM51+l0sMjAYBAstCW2tOWOqed/YnCRYzvAmxlezIfzuHXV\nD48Lven5xttTcmEfYu8ui+fZGOKZYmtNFnvZtkAo/XMl81PpkfaDDbFf+17NwNC+\n8imCh8DysAhwSFwTtSlhIZkqtK36Vw278+qkfjfNAoGAJFjQ+SaLBOPjgEEsKYj/\nAxc8IpVNp34uTR/QPoPZtGfSBwHX2bhsGmDk9UO1BInQlD5JWBSY2Soen6m5qM9c\nJVWaNrdYUvx56fsDFo2Gy5pcNg4OKbCAhpmHvDqnTiwbbmD670XUSit/6jpApcqq\ngzgh3LbTqqFoLdb2olF9JYQ=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-pznvb@innlab-mobile-app.iam.gserviceaccount.com",
+  "client_id": "108218050011007498924",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-pznvb%40innlab-mobile-app.iam.gserviceaccount.com"
+}

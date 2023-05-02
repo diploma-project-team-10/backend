@@ -1,0 +1,36 @@
+<style type="text/css">
+.section {
+    margin: 35px 20px 0 20px;
+}
+
+.section .menu h2 {
+    margin-bottom: 23px;
+}
+
+.menu p {
+    margin-top: 30px;
+    font-size: 18px;
+    color: black;
+}
+
+.menu a {
+    text-decoration: none;
+}
+
+.button {
+    margin: 15px auto 15px;
+    padding: 23px 240px;
+    border-radius: 10px;
+    border: 1px solid #DCDCDC;
+    background-color: #1852b3;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    outline-width: 0;
+    color: white;
+    transition: .6s ease;
+}
+.button:hover {
+    background-color: darkkhaki;
+}
+</style>
