@@ -1,0 +1,130 @@
+spring:
+  application:
+    name: innlab-backend
+  datasource:
+    url: ${POSTGRES_SERVER}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driverClassName: org.postgresql.Driver
+    platform: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 25MB
+      max-request-size: 25MB
+
+  mail:
+    debug: true
+    default-encoding: UTF-8
+    host: smtp.yandex.ru
+    password: BibinurNursulu92
+    port: 465
+    protocol: smtps
+    smtp:
+      auth: true
+      starttls:
+        enable: true
+    username: noreply@mdsp.kz
+    invite:
+      subject: Заявка на стипендию
+      url: https://kbg.kz/page/apply/application2
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    operationsSorter: method
+    path: /innlab/dev/swagger-ui-custom.html
+
+app:
+  token:
+    email:
+      verification:
+        duration: 3600000
+    password:
+      reset:
+        duration: 3600000
+    refresh:
+      duration: 604800000
+assm:
+  app:
+    jwtExpiration: 86400
+    jwtSecret: jwtAssmKeySecret@34ADilet02MDsP
+    news: news
+file:
+  tmp:
+    upload-dir: /var/www/tmp
+
+frontend:
+  host: space.mdsp.kz
+  scheme: https
+hibernate:
+  types:
+    print:
+      banner: false
+mail:
+  tmp:
+    company-logo: ''
+    img-dir: ''
+
+logging:
+  level:
+    root: WARN
+    org:
+      hibernate: ERROR
+      springframework:
+        web: debug
+    tomcat: TRACE
+
+firebase:
+  config:
+    path: firebase_config.json
+
+google:
+  audience:
+    - 59188235869-662mu0ujgp8m3m3vhktfj615od2chb9u.apps.googleusercontent.com
+    - 59188235869-7h2dv0fcsbqk4o6puhkh2pu0j9galnvc.apps.googleusercontent.com
+    - 59188235869-mu1a3sk39g50380ccsjj9g3e1qshgqt6.apps.googleusercontent.com
+
+server:
+  cors:
+    origins:
+      - https://almaty.mugalim.online
+
+projects:
+  reading:
+    mode: structure
+#    mode: group
+
+server:
+  serverName: almaty
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}
+
+####################--Feign Config--####################
+client:
+  username: ${spring.application.name}
+  password: wnG:k!eK88a8pD9W$
+  head: innlab-head
+  urls:
+    - innlab-head
+  hosts:
+    innlab-head: http://localhost:2304
+

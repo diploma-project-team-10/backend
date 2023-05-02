@@ -1,0 +1,422 @@
+// TODO
+CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+
+-- FUNCTION: public.db_array_get_key(character varying[], bigint)
+
+
+-- DROP FUNCTION public.db_array_get_key(character varying[], bigint);
+
+CREATE OR REPLACE FUNCTION public.db_array_get_key(
+	f_array character varying[],
+	f_index bigint)
+    RETURNS character varying
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+ RETURN f_array[1][f_index];
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_array_get_key(character varying[], bigint)
+    OWNER TO postgres;
+
+
+
+
+-- FUNCTION: public.db_array_get_value(character varying[], bigint)
+
+-- DROP FUNCTION public.db_array_get_value(character varying[], bigint);
+
+CREATE OR REPLACE FUNCTION public.db_array_get_value(
+	f_array character varying[],
+	f_index bigint)
+    RETURNS character varying
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+IF array_ndims(f_array) = 2 THEN
+ RETURN f_array[2][f_index];
+ELSIF array_ndims(f_array) = 1 THEN
+ RETURN f_array[f_index];
+END IF;
+RETURN NULL;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_array_get_value(character varying[], bigint)
+    OWNER TO postgres;
+
+
+-- FUNCTION: public.db_array_intersect(character varying[], character varying[])
+
+-- DROP FUNCTION public.db_array_intersect(character varying[], character varying[]);
+
+CREATE OR REPLACE FUNCTION public.db_array_intersect(
+	f1 character varying[],
+	f2 character varying[])
+    RETURNS bigint
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+a1 character varying[];
+a2 character varying[];
+BEGIN
+ IF array_length(f1, 2) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f1, 2)
+  LOOP
+   a1 := array_append(a1, f1[2][i]);
+  END LOOP;
+ ELSIF array_length(f1, 1) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f1, 1)
+  LOOP
+   a1 := array_append(a1, f1[i]);
+  END LOOP;
+ END IF;
+ IF array_length(f2, 2) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f2, 2)
+  LOOP
+   a2 := array_append(a2, f2[2][i]);
+  END LOOP;
+ ELSIF array_length(f2, 1) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f2, 1)
+  LOOP
+   a2 := array_append(a2, f2[i]);
+  END LOOP;
+ END IF;
+ IF array_length(a1, 1) IS NOT NULL AND array_length(a2, 1) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(a1, 1)
+  LOOP
+   FOR j IN 1 .. array_length(a2, 1)
+   LOOP
+    IF (a1[i] = a2[j]) THEN
+     RETURN 1;
+    END IF;
+   END LOOP;
+  END LOOP;
+ END IF;
+ RETURN 0;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_array_intersect(character varying[], character varying[])
+    OWNER TO postgres;
+
+
+
+-- FUNCTION: public.db_array_intersect_key(character varying[], character varying[])
+
+-- DROP FUNCTION public.db_array_intersect_key(character varying[], character varying[]);
+
+CREATE OR REPLACE FUNCTION public.db_array_intersect_key(
+	f1 character varying[],
+	f2 character varying[])
+    RETURNS bigint
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+ IF array_length(f1, 2) IS NOT NULL AND array_length(f2, 2) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f1, 2)
+  LOOP
+   FOR j IN 1 .. array_length(f2, 2)
+   LOOP
+    IF (f1[1][i] = f2[1][j]) THEN
+     RETURN 1;
+    END IF;
+   END LOOP;
+  END LOOP;
+ END IF;
+ RETURN 0;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_array_intersect_key(character varying[], character varying[])
+    OWNER TO postgres;
+
+
+
+-- FUNCTION: public.db_array_key_exists(character varying, character varying[])
+
+-- DROP FUNCTION public.db_array_key_exists(character varying, character varying[]);
+
+CREATE OR REPLACE FUNCTION public.db_array_key_exists(
+	f1 character varying,
+	f2 character varying[])
+    RETURNS bigint
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+ IF array_length(f2, 2) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f2, 2)
+  LOOP
+   IF (f2[1][i] = f1) THEN
+    RETURN 1;
+   END IF;
+  END LOOP;
+ END IF;
+ RETURN 0;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_array_key_exists(character varying, character varying[])
+    OWNER TO postgres;
+
+
+
+-- FUNCTION: public.db_array_to_text(character varying[])
+
+-- DROP FUNCTION public.db_array_to_text(character varying[]);
+
+CREATE OR REPLACE FUNCTION public.db_array_to_text(
+	array_value character varying[])
+    RETURNS character varying
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+ out_value character varying;
+ pos int;
+BEGIN
+ pos := 1;
+ out_value := '';
+ IF(array_length(array_value, 2) IS NULL) THEN
+  RETURN out_value;
+ END IF;
+ <<array_loop>>
+ LOOP
+  out_value := out_value || array_value[2][pos]::character varying;
+  out_value := out_value || '';
+  pos := pos + 1;
+  IF (array_length(array_value, 2) < pos) THEN
+   EXIT array_loop;
+  END IF;
+ END LOOP;
+
+ RETURN out_value;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_array_to_text(character varying[])
+    OWNER TO postgres;
+
+
+
+-- FUNCTION: public.db_array_to_text(character varying[], character varying)
+
+-- DROP FUNCTION public.db_array_to_text(character varying[], character varying);
+
+CREATE OR REPLACE FUNCTION public.db_array_to_text(
+	array_value character varying[],
+	row_sep character varying)
+    RETURNS character varying
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+ out_value character varying;
+ pos int;
+BEGIN
+ pos := 1;
+ out_value := '';
+ IF(array_length(array_value, 2) IS NULL) THEN
+  RETURN out_value;
+ END IF;
+ <<array_loop>>
+ LOOP
+  out_value := out_value || array_value[2][pos]::character varying;
+  pos := pos + 1;
+  IF (array_length(array_value, 2) < pos) THEN
+   EXIT array_loop;
+  END IF;
+  out_value := out_value || row_sep;
+ END LOOP;
+
+ RETURN out_value;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_array_to_text(character varying[], character varying)
+    OWNER TO postgres;
+
+
+
+-- FUNCTION: public.db_implode(character varying, character varying[])
+
+-- DROP FUNCTION public.db_implode(character varying, character varying[]);
+
+CREATE OR REPLACE FUNCTION public.db_implode(
+	f_separator character varying,
+	f_array character varying[])
+    RETURNS character varying
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+rv character varying;
+BEGIN
+ rv := '';
+ IF array_length(f_array, 2) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f_array, 2)
+  LOOP
+   IF i != 1 THEN
+    rv := rv || f_separator;
+   END IF;
+   rv := rv || f_array[2][i];
+  END LOOP;
+ ELSIF array_length(f_array, 1) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f_array, 1)
+  LOOP
+   IF i != 1 THEN
+    rv := rv || f_separator;
+   END IF;
+   rv := rv || f_array[i];
+  END LOOP;
+ END IF;
+ RETURN rv;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_implode(character varying, character varying[])
+    OWNER TO postgres;
+
+
+
+
+-- FUNCTION: public.db_in_array(character varying, character varying[])
+
+-- DROP FUNCTION public.db_in_array(character varying, character varying[]);
+
+CREATE OR REPLACE FUNCTION public.db_in_array(
+	f1 character varying,
+	f2 character varying[])
+    RETURNS bigint
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+ IF array_length(f2, 2) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f2, 2)
+  LOOP
+   IF (f2[2][i] = f1) THEN
+    RETURN 1;
+   END IF;
+  END LOOP;
+ ELSIF array_length(f2, 1) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f2, 1)
+  LOOP
+   IF (f2[i] = f1) THEN
+    RETURN 1;
+   END IF;
+  END LOOP;
+ END IF;
+ RETURN 0;
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_in_array(character varying, character varying[])
+    OWNER TO postgres;
+
+
+
+
+
+-- FUNCTION: public.db_in_array(uuid, uuid[])
+
+-- DROP FUNCTION public.db_in_array(uuid, uuid[]);
+
+CREATE OR REPLACE FUNCTION public.db_in_array(
+	f1 uuid,
+	f2 uuid[])
+    RETURNS bigint
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+
+ IF array_length(f2, 2) IS NOT NULL THEN
+
+  FOR i IN 1 .. array_length(f2, 2)
+
+  LOOP
+
+   IF (f2[2][i] = f1) THEN
+
+    RETURN 1;
+
+   END IF;
+
+  END LOOP;
+
+ ELSIF array_length(f2, 1) IS NOT NULL THEN
+
+  FOR i IN 1 .. array_length(f2, 1)
+
+  LOOP
+
+   IF (f2[i] = f1) THEN
+
+    RETURN 1;
+
+   END IF;
+
+  END LOOP;
+
+ END IF;
+
+ RETURN 0;
+
+END;
+$BODY$;
+
+ALTER FUNCTION public.db_in_array(uuid, uuid[])
+    OWNER TO postgres;
+
+
+CREATE OR REPLACE FUNCTION public.in_array_lower(
+	f1 character varying,
+	f2 character varying[])
+    RETURNS bigint
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+BEGIN
+ IF array_length(f2, 2) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f2, 2)
+  LOOP
+   IF (lower(f2[2][i]) = lower(f1)) THEN
+    RETURN 1;
+   END IF;
+  END LOOP;
+ ELSIF array_length(f2, 1) IS NOT NULL THEN
+  FOR i IN 1 .. array_length(f2, 1)
+  LOOP
+   IF (lower(f2[i]) = lower(f1)) THEN
+    RETURN 1;
+   END IF;
+  END LOOP;
+ END IF;
+ RETURN 0;
+END;
+$BODY$;
+
+ALTER FUNCTION public.in_array_lower(character varying, character varying[])
+    OWNER TO postgres;
