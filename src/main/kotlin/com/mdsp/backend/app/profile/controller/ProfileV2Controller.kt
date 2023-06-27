@@ -77,7 +77,7 @@ class ProfileV2Controller {
     @ResponseBody
     fun getUserImage(authentication: Authentication): ResponseEntity<*> {
         var status = Status()
-        val user = profileRepository.findByEmailAndDeletedAtIsNull(authentication.name)
+        val user = profileRepository.findByUsernameAndDeletedAtIsNull(authentication.name)
         if (user.isPresent && user.get().getAvatarRef().isNotEmpty()) {
             status.status = 1
             status.message = user.get().getAvatarRef("thumb_", "s")
@@ -155,6 +155,22 @@ class ProfileV2Controller {
                 refRecord.setDataField(newRecord)
                 refRecord.setEditor(profileService.getProfileReferenceById(recordId))
 
+
+                if (refRecord.getDataField().containsKey("username")) {
+                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                        status.status = 0
+                        status.message = "Username is not valid!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    val profileCandidate = profileRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull(refRecord.getDataField()["username"].toString())
+                    if (profileCandidate.isPresent && profileCandidate.get().getId() != recordId) {
+                        status.status = 0
+                        status.message = "Username is present!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    refRecord.getDataField()["username"] = refRecord.getDataField()["username"].toString().lowercase()
+                }
+
                 if (refRecord.getDataField().containsKey("email")) {
                     if (!ProfileService.isEmailValid(refRecord.getDataField()["email"].toString().lowercase())) {
                         status.status = 0
@@ -197,6 +213,357 @@ class ProfileV2Controller {
                         refRecord.removeKeyData("password")
                     }
 
+                    refRecord.save()
+                    status.status = 1
+                    status.message = "Record saved"
+                    status.value = refRecord.getRecordId()
+                } else {
+                    status.status = 0
+                    status.message = refRecord.getErrorText()
+                }
+
+            }
+        }
+
+        return ResponseEntity(status, HttpStatus.OK)
+    }
+
+    // Edit another user password
+    @PostMapping(value = ["/acc/user/edit/{id}", "/user/edit/{id}"])
+    @PreAuthorize("isAuthenticated()")
+    fun editUserInfo(
+        @PathVariable(value = "id") id: UUID,
+        @Valid @RequestBody infoUser: UserAuthRequest,
+        authentication: Authentication
+    ): ResponseEntity<*> {
+        val status = Status()
+        status.status = 0
+        status.message = ""
+
+        val reference = referenceRepository.findByIdAndDeletedAtIsNull(PROFILE_REF)
+        if (reference.isPresent) {
+            val refRecord = RefRecord(id, reference.get(), dataSourceConfig)
+            if (refRecord.isExisted()) {
+                refRecord.load()
+                val newRecord: MutableMap<String, Any?> = mutableMapOf()
+                newRecord["username"] = infoUser.username
+                newRecord["email"] = infoUser.email
+                newRecord["password"] = infoUser.newPassword
+                refRecord.setDataField(newRecord)
+                refRecord.setEditor(profileService.getProfileReferenceById(id))
+
+                // Access to edit
+                val profileId = (authentication.principal as UserPrincipal).id
+                if (refRecord.getDataField().containsKey("owner") && refRecord.getDataField()["owner"] != null) {
+                    val owner = UUID.fromString(refRecord.getDataField()["owner"].toString())
+                    if (!accessService.mayEdit(profileId, reference.get(), owner, arrayListOf(id))) {
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                }
+                // Access to edit
+
+
+                if (refRecord.getDataField().containsKey("username")) {
+                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                        status.status = 0
+                        status.message = "Username is not valid!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    val profileCandidate = profileRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull(refRecord.getDataField()["username"].toString())
+                    if (profileCandidate.isPresent && profileCandidate.get().getId() != id) {
+                        status.status = 0
+                        status.message = "Username is present!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    refRecord.getDataField()["username"] = refRecord.getDataField()["username"].toString().lowercase()
+                }
+
+                if (refRecord.getDataField().containsKey("email")) {
+                    if (!ProfileService.isEmailValid(refRecord.getDataField()["email"].toString().lowercase())) {
+                        status.status = 0
+                        status.message = "Email is not valid!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    val profileCandidate = profileRepository.findByEmailIgnoreCaseAndDeletedAtIsNull(refRecord.getDataField()["email"].toString())
+                    if (profileCandidate.isPresent && profileCandidate.get().getId() != id) {
+                        status.status = 0
+                        status.message = "Email is present!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    refRecord.getDataField()["email"] = refRecord.getDataField()["email"].toString().lowercase()
+                }
+
+
+                if (refRecord.isValid()) {
+                    if (
+                        !infoUser.newPassword.isNullOrBlank()
+                        && !infoUser.confirmPassword.isNullOrBlank()
+                    ) {
+                        if (infoUser.newPassword != infoUser.confirmPassword)  {
+                            status.message = "Passwords are not same"
+                            return ResponseEntity(status, HttpStatus.OK)
+                        }
+                        if (!ProfileService.isPasswordValid(infoUser.newPassword!!)) {
+                            status.status = 0
+                            status.message = "Password is not valid!"
+                            return ResponseEntity(status, HttpStatus.OK)
+                        }
+                        refRecord.getDataField()["password"] = encoder.encode(infoUser.newPassword)
+                    } else {
+                        refRecord.removeKeyData("password")
+                    }
+
+                    refRecord.save()
+                    status.status = 1
+                    status.message = "Record saved"
+                    status.value = refRecord.getRecordId()
+                } else {
+                    status.status = 0
+                    status.message = refRecord.getErrorText()
+                }
+
+            }
+        }
+
+        return ResponseEntity(status, HttpStatus.OK)
+    }
+
+    // Edit user info all
+    @PostMapping(value = ["/acc/user/edit/all"])
+    @PreAuthorize("isAuthenticated()")
+    fun editPageRecordReference(
+        @Valid @RequestBody newRecord: MutableMap<String, Any?>,
+        @RequestParam(value = "additional") additional: Boolean = false,
+        authentication: Authentication
+    ): ResponseEntity<*> {
+        val status = Status()
+        status.status = 0
+        status.message = ""
+
+        val reference = referenceRepository.findByIdAndDeletedAtIsNull(PROFILE_REF)
+
+        val profileId = (authentication.principal as UserPrincipal).id
+        val recordId = if (newRecord.containsKey("id")) { UUID.fromString(newRecord["id"] as String) } else { profileId }
+        if (reference.isPresent) {
+            var access = false
+            var refRecord = RefRecord(recordId, reference.get(), dataSourceConfig)
+            if (refRecord.isExisted()) {
+                refRecord.load()
+
+                // Access to edit
+                if (refRecord.getDataField().containsKey("owner") && refRecord.getDataField()["owner"] != null) {
+                    val owner = UUID.fromString(refRecord.getDataField()["owner"].toString())
+                    access = accessService.mayEdit(profileId, reference.get(), owner, arrayListOf(recordId))
+                }
+                // Access to edit
+
+                var addRecord: MutableMap<String, Any?> = newRecord
+                if (additional) {
+                    addRecord = mutableMapOf()
+                    for ((key, value) in newRecord) {
+                        if (
+                            !refRecord.getDataField().containsKey(key)
+                            || refRecord.getAllFields()[key]!! !is ComplexField
+                        ) {
+                            continue
+                        }
+                        addRecord[key] = value
+                        if (
+                            refRecord.getAllFields().containsKey(key)
+                            && refRecord.getAllFields()[key]!! is ComplexField
+                            && refRecord.getDataField()[key] != null
+                        ) {
+                            addRecord[key] = refRecord.getDataField()[key]
+                            for (item in (value as ArrayList<MutableMap<String, Any?>>)) {
+                                if (
+                                    addRecord[key] is ArrayList<*>
+                                    && (addRecord[key] as ArrayList<MutableMap<String, Any?>>).none { p -> p["id"] == item["id"] }
+                                ) {
+                                    addRecord[key] = (addRecord[key] as ArrayList<MutableMap<String, Any?>>).plus(item)
+                                }
+                            }
+                        }
+                    }
+                }
+                refRecord.setDataField(addRecord)
+                refRecord.setEditor(profileService.getProfileReferenceById(recordId))
+
+                if (!access) {
+                    addRecord.remove("fio")
+                    addRecord.remove("first_name")
+                    addRecord.remove("middle_name")
+                    refRecord.removeKeyData("fio")
+                    refRecord.removeKeyData("first_name")
+                    refRecord.removeKeyData("middle_name")
+                }
+                else {
+                    if (addRecord.containsKey("roles")) {
+                        val roles = addRecord["roles"] as ArrayList<MutableMap<String, Any?>>
+                        val childRoles = rolesGroupService.getChildRolesUUIDByProfile(profileId)
+                        if (profileId == recordId) {
+                            childRoles.addAll(rolesGroupService.getRolesUUIDByProfile(profileId))
+                        }
+                        for (role in roles) {
+                            if (!childRoles.contains(role["id"] as String)) {
+                                addRecord.remove("roles")
+                                break
+                            }
+                        }
+                    }
+                }
+
+                if (refRecord.getDataField().containsKey("username") && access) {
+                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                        status.status = 0
+                        status.message = "Username is not valid!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    val profileCandidate = profileRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull(refRecord.getDataField()["username"].toString())
+                    if (profileCandidate.isPresent && profileCandidate.get().getId() != recordId) {
+                        status.status = 0
+                        status.message = "Username is present!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    refRecord.getDataField()["username"] = refRecord.getDataField()["username"].toString().lowercase()
+                } else {
+                    refRecord.removeKeyData("username")
+                }
+
+                if (refRecord.getDataField().containsKey("email")) {
+                    if (!ProfileService.isEmailValid(refRecord.getDataField()["email"].toString().lowercase())) {
+                        status.status = 0
+                        status.message = "Email is not valid!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    val profileCandidate = profileRepository.findByEmailIgnoreCaseAndDeletedAtIsNull(refRecord.getDataField()["email"].toString())
+                    if (profileCandidate.isPresent && profileCandidate.get().getId() != recordId) {
+                        status.status = 0
+                        status.message = "Email is present!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    refRecord.getDataField()["email"] = refRecord.getDataField()["email"].toString().lowercase()
+                }
+                refRecord = profileService.setProfileRef(reference.get(), refRecord, addRecord)
+
+
+                if (refRecord.isValid()) {
+                    for (item in recordNoteService.getPasswordFields(reference.get())) {
+                        refRecord.removeKeyData(item)
+                    }
+                    refRecord.save()
+                    status.status = 1
+                    status.message = "Record saved"
+                    status.value = refRecord.getRecordId()
+                } else {
+                    status.status = 0
+                    status.message = refRecord.getErrorText()
+                }
+
+            }
+        }
+
+        return ResponseEntity(status, HttpStatus.OK)
+    }
+
+    @PostMapping(value = ["/profile/user/edit/all", "/user/edit"])
+    @PreAuthorize("isAuthenticated()")
+    fun editRecordReference(
+        @Valid @RequestBody newRecord: MutableMap<String, Any?>,
+        @RequestParam(value = "additional") additional: Boolean = false,
+        authentication: Authentication
+    ): ResponseEntity<*> {
+        val status = Status()
+        status.status = 0
+        status.message = ""
+
+        val reference = referenceRepository.findByIdAndDeletedAtIsNull(PROFILE_REF)
+        val recordId = (authentication.principal as UserPrincipal).id
+        if (reference.isPresent) {
+            var refRecord = RefRecord(recordId, reference.get(), dataSourceConfig)
+            if (refRecord.isExisted()) {
+                refRecord.load()
+
+                var addRecord: MutableMap<String, Any?> = newRecord
+                if (additional) {
+                    addRecord = mutableMapOf()
+                    for ((key, value) in newRecord) {
+                        if (
+                            !refRecord.getDataField().containsKey(key)
+                            || refRecord.getAllFields()[key]!! !is ComplexField
+                        ) {
+                            continue
+                        }
+                        addRecord[key] = value
+                        if (
+                            refRecord.getAllFields().containsKey(key)
+                            && refRecord.getAllFields()[key]!! is ComplexField
+                            && refRecord.getDataField()[key] != null
+                        ) {
+                            addRecord[key] = refRecord.getDataField()[key]
+                            for (item in (value as ArrayList<MutableMap<String, Any?>>)) {
+                                if (
+                                    addRecord[key] is ArrayList<*>
+                                    && (addRecord[key] as ArrayList<MutableMap<String, Any?>>).none { p -> p["id"] == item["id"] }
+                                ) {
+                                    addRecord[key] = (addRecord[key] as ArrayList<MutableMap<String, Any?>>).plus(item)
+                                }
+                            }
+                        }
+                    }
+                }
+                refRecord.setDataField(addRecord)
+                refRecord.setEditor(profileService.getProfileReferenceById(recordId))
+
+
+                if (refRecord.getDataField().containsKey("username")) {
+                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                        status.status = 0
+                        status.message = "Username is not valid!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    val profileCandidate = profileRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull(refRecord.getDataField()["username"].toString())
+                    if (profileCandidate.isPresent && profileCandidate.get().getId() != recordId) {
+                        status.status = 0
+                        status.message = "Username is present!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    refRecord.getDataField()["username"] = refRecord.getDataField()["username"].toString().lowercase()
+                }
+
+                if (refRecord.getDataField().containsKey("email")) {
+                    if (!ProfileService.isEmailValid(refRecord.getDataField()["email"].toString().lowercase())) {
+                        status.status = 0
+                        status.message = "Email is not valid!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    val profileCandidate = profileRepository.findByEmailIgnoreCaseAndDeletedAtIsNull(refRecord.getDataField()["email"].toString())
+                    if (profileCandidate.isPresent && profileCandidate.get().getId() != recordId) {
+                        status.status = 0
+                        status.message = "Email is present!"
+                        return ResponseEntity(status, HttpStatus.OK)
+                    }
+                    refRecord.getDataField()["email"] = refRecord.getDataField()["email"].toString().lowercase()
+                }
+                refRecord = profileService.setProfileRef(reference.get(), refRecord, addRecord)
+
+
+                if (refRecord.isValid()) {
+                    for (item in recordNoteService.getPasswordFields(reference.get())) {
+                        if (
+                            addRecord.containsKey(item)
+                            && addRecord[item] != null
+                            && addRecord[item] != ""
+                        ) {
+                            if (!ProfileService.isPasswordValid(addRecord[item].toString())) {
+                                status.status = 0
+                                status.message = "Password is not valid!"
+                                return ResponseEntity(status, HttpStatus.OK)
+                            }
+                            refRecord.getDataField()[item] = encoder.encode(addRecord[item].toString())
+                        } else {
+                            refRecord.removeKeyData(item)
+                        }
+                    }
                     refRecord.save()
                     status.status = 1
                     status.message = "Record saved"
