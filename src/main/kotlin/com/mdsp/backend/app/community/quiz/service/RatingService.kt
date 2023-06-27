@@ -1,6 +1,7 @@
 package com.mdsp.backend.app.community.quiz.service
 
 import com.mdsp.backend.app.community.question.repository.IQuestionsRepository
+import com.mdsp.backend.app.community.quiz.model.UserRating
 import com.mdsp.backend.app.community.quiz.repository.IRatingRepository
 import com.mdsp.backend.app.profile.service.ProfileService
 
@@ -18,22 +19,38 @@ class RatingService {
     lateinit var questionRepository: IQuestionsRepository
 
     @Autowired
+    lateinit var userRatingRepository: IRatingRepository
+
+    @Autowired
     lateinit var userService: ProfileService
 
-    @Async
-    fun rateQuestion(questionId: UUID, answeredCorrectly: Boolean, userRating: Int) {
+    fun calculateUserRating(questionId: UUID, answeredCorrectly: Boolean, userRating: Int): Int {
+
         val question = questionRepository.findByIdAndDeletedAtIsNull(questionId)
             .orElseThrow { RuntimeException("Question not found") }
-        val expectedScore = calculateExpectedScore(question.rating!!, userRating)
+        val expectedScore = calculateExpectedScore(question.topic?.rating, userRating)
         val actualScore = if (answeredCorrectly) 1 else 0
-        val newRating: Int = question.rating!! + K_FACTOR * (actualScore - expectedScore)
+        val newRating: Int = (question.topic?.rating?:100) + K_FACTOR * (actualScore - expectedScore)
         userService.setUserRating(newRating)
+        return newRating
     }
 
-    private fun calculateExpectedScore(questionRating: Int, userRating: Int): Int {
-        val ratingDifference = (userRating - questionRating).toDouble()
+    private fun calculateExpectedScore(questionRating: Int?, userRating: Int): Int {
+        val ratingDifference = (userRating - (questionRating?:100)).toDouble()
         val exponent = ratingDifference / 400.0
         return (1 / (1 + Math.pow(10.0, exponent))).toInt()
+    }
+
+    fun getUserRatingByProgramId(userId: UUID, programId: UUID): UserRating {
+        return userRatingRepository.findByUserIdAndProgramId(userId, programId)
+            .orElseGet {
+                val rating = UserRating()
+                rating.userId = userId
+                rating.programId = programId
+                rating.rating = INITIAL_RATING
+                userRatingRepository.save(rating)
+                rating
+            }
     }
 
     companion object {

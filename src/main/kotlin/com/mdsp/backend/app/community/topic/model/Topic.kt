@@ -46,6 +46,7 @@ class Topic : DateAudit {
     )
     @Type(type = "int-array")
     var topicVersion: Array<Int>? = null
+    var rating: Int? = 1
 
     override fun toString(): String {
         return "Title=${title} parentId=${parentId} orderNum=${orderNum} topicVersion=${Arrays.toString(topicVersion)}"

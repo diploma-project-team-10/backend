@@ -9,9 +9,9 @@ class GeneratedQuestion {
     var descriptionEn: String? = null
 
     var answerType: Int? = null
-    var answerVariants: ArrayList<Variant>? = null
-    var answerRelVariants: ArrayList<Variant>? = null
-    var studentAnswer: ArrayList<Variant>? = null
+    var answerVariants: ArrayList<Variant> = arrayListOf()
+    var answerRelVariants: ArrayList<Variant> = arrayListOf()
+    var studentAnswer: ArrayList<Variant> = arrayListOf()
     var isCorrect: Boolean = false
 
     constructor()
@@ -22,8 +22,8 @@ class GeneratedQuestion {
         descriptionRu: String?,
         descriptionEn: String?,
         answerType: Int?,
-        answerVariants: ArrayList<Variant>?,
-        answerRelVariants: ArrayList<Variant>?
+        answerVariants: ArrayList<Variant> = arrayListOf(),
+        answerRelVariants: ArrayList<Variant> = arrayListOf()
     ) {
         this.id = id
         this.description = description

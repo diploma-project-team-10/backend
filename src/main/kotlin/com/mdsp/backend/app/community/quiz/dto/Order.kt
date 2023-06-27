@@ -1,10 +1,10 @@
-package com.mdsp.backend.app.quiz.model
+package com.mdsp.backend.app.community.quiz.dto
 
 import com.mdsp.backend.app.system.model.Util
 import java.util.*
 import kotlin.collections.ArrayList
 
-class FillBlank: IQuiz {
+class Order: IQuiz {
 
     override var variantsMap: ArrayList<MutableMap<String, Any?>> = arrayListOf()
     override var errorText: String = ""

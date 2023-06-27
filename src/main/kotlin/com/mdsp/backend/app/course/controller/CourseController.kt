@@ -66,7 +66,7 @@ class CourseController {
         println("Course")
         val pageImp: PageRequest = PageRequest.of(page - 1, size, Sort.by("order_num"))
         val search = if (!searchValue.isNullOrEmpty()) { "%${searchValue}%" } else { "%%" }
-        val pageData = courseRepository.getCurrentCoursesClient(StatusCourse.PUBLISHED.ordinal, search, pageImp)
+        val pageData = courseRepository.getCurrentCoursesClient(search, pageImp)
         val profile = profileRepository.findByUsernameAndDeletedAtIsNull(authentication.name)
         val profileId = profile.get().getId()
         if (profileId != null) {
@@ -89,7 +89,7 @@ class CourseController {
         authentication: Authentication,
     ): Page<CourseShortResponse> {
         val pageImp: PageRequest = PageRequest.of(page - 1, size, Sort.by("order_num"))
-        val pageData = courseRepository.getCoursesByPackage(StatusCourse.PUBLISHED.ordinal, packageId.toString(), pageImp)
+        val pageData = courseRepository.getCoursesByPackage(packageId.toString(), pageImp)
         val profileId = profileRepository.findByUsernameAndDeletedAtIsNull(authentication.name).get().getId()
         if (profileId != null) {
             for (item in pageData.content) {
@@ -120,7 +120,7 @@ class CourseController {
             if (ids.isEmpty()) {
                 return Page.empty()
             }
-            val pageData = courseRepository.getCurrentMyCoursesClient(StatusCourse.PUBLISHED.ordinal, ids, pageImp)
+            val pageData = courseRepository.getCurrentMyCoursesClient(ids, pageImp)
             for (item in pageData.content) {
                 val progression = joiningRepository.findAllByCourseIdAndProfileIdAndDeletedAtIsNull(item.getId()!!, profileId)
                 if (progression.isNotEmpty()) {

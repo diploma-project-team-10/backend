@@ -1,4 +1,4 @@
-package com.mdsp.backend.app.quiz.model
+package com.mdsp.backend.app.community.quiz.dto
 
 interface IQuiz {
     var variantsMap: ArrayList<MutableMap<String, Any?>>

@@ -1,4 +1,4 @@
-package com.mdsp.backend.app.quiz.model
+package com.mdsp.backend.app.community.quiz.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.mdsp.backend.app.community.question.payload.Variant

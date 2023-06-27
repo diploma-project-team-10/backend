@@ -1,11 +1,9 @@
 package com.mdsp.backend.app.community.quiz.model
 
 import org.hibernate.annotations.GenericGenerator
+import org.hibernate.annotations.Type
 import java.util.*
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.Table
+import javax.persistence.*
 
 @Entity
 @Table(name = "user_rating")
@@ -21,4 +19,11 @@ class UserRating {
     var programId: UUID? = null
     var userId: UUID? = null
     var rating: Int? = null
+
+    @Type(type = "jsonb")
+    @Column(
+        name = "changes",
+        columnDefinition = "jsonb"
+    )
+    var changes: List<RatingChange> = listOf()
 }

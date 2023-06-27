@@ -29,6 +29,9 @@ class QuestionController {
     @Autowired
     lateinit var topicRepository: ITopicRepository
 
+    @Autowired
+    lateinit var questionService: QuestionService
+
     @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
     fun getQuestions(
@@ -102,7 +105,7 @@ class QuestionController {
             } else {
                 status.message = "Question created!"
             }
-            questionUpdateRating()
+//            questionUpdateRating()
             questionsRepository.save(newQuestion)
             status.status = 1
         } else {
@@ -113,13 +116,13 @@ class QuestionController {
         return status
     }
 
-    @Async
-    fun questionUpdateRating() {
-        questionsRepository.findAllByDeletedAtIsNullOrderByTopicVersion().forEachIndexed { index, question ->
-            question.rating = 600 + (index + 1) * 15
-            questionsRepository.save(question)
-        }
-    }
+//    @Async
+//    fun questionUpdateRating() {
+//        questionsRepository.findAllByDeletedAtIsNullOrderByTopicVersion().forEachIndexed { index, question ->
+//            question.rating = 600 + (index + 1) * 15
+//            questionsRepository.save(question)
+//        }
+//    }
 
 
     @PostMapping("/generated")
@@ -140,18 +143,18 @@ class QuestionController {
             while (correctAnswer.equals("Incorrect")) {
                 if (stepSolving > 10) throw Exception("Condition or range is wrong! (result)")
 
-                QuestionService.generateVariables(variables)
+                questionService.generateVariables(variables)
 
-                correctAnswer = QuestionService.getResultAnswer(variables)
+                correctAnswer = questionService.getResultAnswer(variables)
                 stepSolving++;
             }
 
             val responseExercise = GeneratedQuestion()
-            responseExercise.answerType = (requestExercise.answerType)
-            responseExercise.description = (QuestionService.reconstructStatement(requestExercise.description?:"", variables))
-            responseExercise.descriptionEn = (QuestionService.reconstructStatement(requestExercise.descriptionEn?:"", variables))
-            responseExercise.descriptionRu = (QuestionService.reconstructStatement(requestExercise.descriptionRu?:"", variables))
-            responseExercise.answerVariants = (QuestionService.getAnswerVariants(variables, customVariants))
+            responseExercise.answerType = requestExercise.answerType
+            responseExercise.description = questionService.reconstructStatement(requestExercise.description?:"", variables)
+            responseExercise.descriptionEn = questionService.reconstructStatement(requestExercise.descriptionEn?:"", variables)
+            responseExercise.descriptionRu = questionService.reconstructStatement(requestExercise.descriptionRu?:"", variables)
+            responseExercise.answerVariants = questionService.getAnswerVariants(variables, customVariants)
 
             status.status = 1
             status.message = "Generated successful!"

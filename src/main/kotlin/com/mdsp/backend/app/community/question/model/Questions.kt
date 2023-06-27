@@ -4,8 +4,8 @@ import com.mdsp.backend.app.community.topic.model.Topic
 import com.mdsp.backend.app.community.question.payload.Variable
 import com.mdsp.backend.app.community.question.payload.Variant
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.mdsp.backend.app.quiz.model.IQuiz
-import com.mdsp.backend.app.quiz.model.QuizAudit
+import com.mdsp.backend.app.community.quiz.dto.IQuiz
+import com.mdsp.backend.app.community.quiz.dto.QuizAudit
 import org.hibernate.annotations.GenericGenerator
 import org.hibernate.annotations.Type
 import java.util.*
@@ -47,8 +47,6 @@ open class Questions : QuizAudit() {
         columnDefinition = "jsonb"
     )
     var variables: ArrayList<Variable> = arrayListOf()
-
-    var rating: Int? = 1000
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id", referencedColumnName = "id", updatable = false, insertable = false)

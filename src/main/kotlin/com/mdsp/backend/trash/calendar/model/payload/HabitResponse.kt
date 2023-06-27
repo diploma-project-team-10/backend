@@ -1,7 +1,7 @@
-package com.mdsp.backend.app.calendar.model.payload
+package com.mdsp.backend.trash.calendar.model.payload
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.mdsp.backend.app.calendar.model.Habit
+import com.mdsp.backend.trash.calendar.model.Habit
 import java.util.*
 
 class HabitResponse(habit: Habit) {

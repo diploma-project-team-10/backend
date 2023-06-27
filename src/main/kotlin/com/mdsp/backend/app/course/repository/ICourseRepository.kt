@@ -25,26 +25,23 @@ interface ICourseRepository: JpaRepository<Course, Long> {
         page: Pageable
     ): Page<CourseResponse>
 
-    @Query("SELECT * FROM course c WHERE c.status = :status AND c.deleted_at IS NULL " +
+    @Query("SELECT * FROM course c WHERE c.deleted_at IS NULL " +
             "AND (lower(c.display_name) LIKE lower(:search)  OR lower(c.description) LIKE lower(:search) " +
             "OR lower(c.intro_description) LIKE lower(:search))", nativeQuery = true)
     fun getCurrentCoursesClient(
-        @Param("status") status: Int,
         @Param("search") search: String?,
         page: Pageable
     ): Page<Course>
 
-    @Query("SELECT * FROM course c WHERE c.status = :status AND c.deleted_at IS NULL AND id IN :ids", nativeQuery = true)
+    @Query("SELECT * FROM course c WHERE c.deleted_at IS NULL AND id IN :ids", nativeQuery = true)
     fun getCurrentMyCoursesClient(
-        @Param("status") status: Int,
         @Param("ids") ids: Array<UUID>,
         page: Pageable
     ): Page<Course>
 
-    @Query("SELECT * FROM course c WHERE c.status = :status AND c.deleted_at IS NULL " +
+    @Query("SELECT * FROM course c WHERE c.deleted_at IS NULL " +
             "AND db_array_key_exists(:packageId, c.packages) = 1", nativeQuery = true)
     fun getCoursesByPackage(
-        @Param("status") status: Int,
         @Param("packageId") packageId: String,
         page: Pageable
     ): Page<Course>

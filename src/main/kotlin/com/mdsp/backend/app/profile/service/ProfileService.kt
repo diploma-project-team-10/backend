@@ -57,31 +57,6 @@ class ProfileService {
         return Optional.empty()
     }
 
-    fun getProfileReference(id: UUID): Array<Array<String>>? {
-        val _profile = profileRepository.findByIdAndDeletedAtIsNull(id)
-        if (_profile.isPresent) {
-            var res: Array<Array<String>> = arrayOf()
-            res = res.plus(arrayOf(_profile.get().getId().toString()))
-            res = res.plus(arrayOf(_profile.get().getFio()))
-            return res
-        }
-        return null
-    }
-
-    /*
-     * By Access Token
-     */
-    fun getProfileReferenceByAT(username: String, all: Boolean = false): Array<Array<String>>? {
-        val _profile = this.getProfileByUsernameOrEmail(username, all)
-        if (_profile.isPresent) {
-            var res: Array<Array<String>> = arrayOf()
-            res = res.plus(arrayOf(_profile.get().getId().toString()))
-            res = res.plus(arrayOf(_profile.get().getFio()))
-            return res
-        }
-        return null
-    }
-
     fun getProfileReferenceById(id: UUID): Array<Array<String>>? {
         val _profile = profileRepository.findByIdAndDeletedAtIsNull(id)
         if (_profile.isPresent) {
@@ -119,7 +94,7 @@ class ProfileService {
 
     fun setProfileRef(reference: Reference, record: RefRecord, newRecordData: MutableMap<String, Any?>): RefRecord {
         val data = record.getDataField()
-        val fioPrepare: ArrayList<String> = arrayListOf<String>(data["last_name"].toString(), data["first_name"].toString())
+        val fioPrepare: ArrayList<String> = arrayListOf(data["last_name"].toString(), data["first_name"].toString())
         if (data["middle_name"] != null) {
             fioPrepare.add(data["middle_name"].toString())
         }
@@ -189,44 +164,7 @@ class ProfileService {
             }
 
             if (!roles.contains("ADMIN")) {
-
-                if (roles.contains("HEAD_CITY")) {
-
-
-                    if (profile.getCity().isNotEmpty()) {
-                        val city = profile.getCity()[0]
-                        if (city.containsKey("id")) {
-
-                            val referenceUniver =
-                                referenceRepository.findByIdAndDeletedAtIsNull(UUID.fromString("55dd3346-2d94-45bb-b661-a3884701d1f9"))
-                            if (referenceUniver.isPresent) {
-                                val gridUniver =
-                                    GridQuery(referenceUniver.get().getTableName(), dataSourceConfig)
-
-                                gridUniver.setRefFields(
-                                    Util.mergeMutableMap(Util.toJson(referenceUniver.get().getUserFields()),
-                                        Util.toJson(referenceUniver.get().getSysFields()))
-                                )
-                                gridUniver.addCondition("deleted_at IS NULL", arrayOf())
-                                gridUniver.addCondition(" AND db_array_key_exists(?, city) = 1",
-                                    arrayOf(city["id"]))
-                                gridUniver.addColumn("display_name_ru")
-                                var univers: Array<String> = arrayOf()
-                                var univerIds: Array<String> = arrayOf()
-                                for (item in gridUniver.getDataPage()) {
-                                    univerIds = univerIds.plus(item["id"].toString())
-                                    univers = univers.plus(item["display_name_ru"].toString())
-                                }
-                                result.add(mutableMapOf(
-                                    "condition" to " AND db_array_intersect_key(?, profiles.university) = 1",
-                                    "value" to arrayOf(arrayOf(univerIds, univers))
-                                ))
-                            }
-                        }
-                    }
-
-
-                } else if (roles.contains("MENTOR")) {
+                if (roles.contains("MENTOR")) {
                     val strIds = getIdsByMentor(profile.getId()!!)
                     if (strIds.isNotEmpty()) {
                         val symbolS = Array(strIds.size) { "?" }
@@ -235,7 +173,6 @@ class ProfileService {
                             "value" to strIds
                         ))
                     }
-
                 } else if (roles.contains("STUDENT")) {
                     return false
                 }
@@ -278,9 +215,7 @@ class ProfileService {
         return false
     }
 
-    fun setUserRating(newRating: Int) {
-
-    }
+    fun setUserRating(newRating: Int) {}
 
     companion object {
         @JvmStatic
@@ -288,7 +223,6 @@ class ProfileService {
 
         @JvmStatic
         private val PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+\$).{7,}\$"
-//        private val PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#\$%^&+=])(?=\\S+\$).{7,}\$"
 
 
         fun isUsernameValid(username: String?): Boolean {

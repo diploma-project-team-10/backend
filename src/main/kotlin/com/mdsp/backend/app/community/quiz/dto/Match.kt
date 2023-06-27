@@ -1,4 +1,4 @@
-package com.mdsp.backend.app.quiz.model
+package com.mdsp.backend.app.community.quiz.dto
 
 import com.mdsp.backend.app.system.model.Util
 import java.util.*

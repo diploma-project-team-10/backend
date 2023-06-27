@@ -1,4 +1,4 @@
-package com.mdsp.backend.app.calendar.model
+package com.mdsp.backend.trash.calendar.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty

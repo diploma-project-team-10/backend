@@ -28,9 +28,6 @@ class SpecialityController {
     lateinit var referenceRepository: IReferenceRepository
 
     @Autowired
-    lateinit var recordNoteService: RecordNoteService
-
-    @Autowired
     lateinit var rolesGroupService: RolesGroupService
 
     @Autowired
@@ -39,8 +36,6 @@ class SpecialityController {
     @Autowired
     lateinit var dataSourceConfig: DataSourceConfiguration
 
-    private val PROFILE_REF: UUID = UUID.fromString("00000000-0000-0000-0000-000000000017")
-
     @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
     @ResponseBody
@@ -48,7 +43,6 @@ class SpecialityController {
         val speciality: ArrayList<MutableMap<String, Any?>> = arrayListOf()
         val university: ArrayList<MutableMap<String, Any?>> = arrayListOf()
         val city: ArrayList<MutableMap<String, Any?>> = arrayListOf()
-        val englevel: ArrayList<MutableMap<String, Any?>> = arrayListOf()
         val profiles = profileRepository.findAllByDeletedAtIsNull()
         for (profile in profiles) {
             val sp = profile.getSpeciality()
@@ -74,34 +68,11 @@ class SpecialityController {
                     city.add(mutableMapOf("id" to ct.first()["id"], "value" to StringEscapeUtils.unescapeHtml(ct.first()["value"].toString())))
                 }
             }
-
-            val lvl  = profile.getEnglishLevel()
-            if (lvl.isNotEmpty()) {
-                val i = englevel.filter { p -> p["id"] == lvl.first()["id"]}
-                if (i.isEmpty()) {
-                    englevel.add(mutableMapOf("id" to lvl.first()["id"], "value" to StringEscapeUtils.unescapeHtml(lvl.first()["value"].toString())))
-                }
-            }
-
-        }
-        val groupStudent = rolesGroupService.getGroupByRole("MENTOR")
-        val mentors: ArrayList<MutableMap<String, Any?>> = arrayListOf()
-        if (groupStudent.isPresent) {
-            for (mentor in groupStudent.get().getMembers()) {
-                if (mentor.containsKey("id")) {
-                    val p = profileRepository.findByIdAndDeletedAtIsNull(UUID.fromString(mentor["id"].toString()))
-                    if (p.isPresent) {
-                        mentors.add(mentor)
-                    }
-                }
-            }
         }
         return ResponseEntity(mutableMapOf(
             "university" to university,
             "speciality" to speciality,
-            "mentors" to mentors,
             "city" to city,
-            "englevel" to englevel,
         ), HttpStatus.OK)
     }
 

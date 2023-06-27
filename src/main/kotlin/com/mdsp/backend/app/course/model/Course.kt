@@ -124,6 +124,10 @@ class Course() : StatusAudit() {
     @JsonProperty("access_course")
     private var accessCourse: Int? = null
 
+    @Column(name = "status")
+    @JsonProperty("status")
+    private var status: StatusCourse? = null
+
     @Column(name = "is_prerequisites")
     @JsonProperty("is_prerequisites")
     private var isPrerequisites: Boolean = false

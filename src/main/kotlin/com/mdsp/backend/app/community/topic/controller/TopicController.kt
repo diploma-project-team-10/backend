@@ -1,6 +1,5 @@
 package com.mdsp.backend.app.community.topic.controller
 
-import com.mdsp.backend.app.community.program.repository.IProgramRepository
 import com.mdsp.backend.app.community.program.service.ProgramService
 import com.mdsp.backend.app.community.topic.model.Topic
 import com.mdsp.backend.app.community.topic.repository.ITopicRepository
@@ -19,7 +18,10 @@ class TopicController {
     lateinit var topicRepository: ITopicRepository
 
     @Autowired
-    lateinit var programRepository: IProgramRepository
+    lateinit var programService: ProgramService
+
+    @Autowired
+    lateinit var topicService: TopicService
 
 
     @GetMapping("/list")
@@ -46,8 +48,8 @@ class TopicController {
             topicRepository.save(_topic)
             var siblingTopics = topicRepository.findAllByParentIdAndDeletedAtIsNull(_topic.parentId)
             _topic.orderNum = (siblingTopics.size)
-            var parentTopic = TopicService.getParentTopic(_topic, topicRepository)
-            TopicService.updateTopicVersionFromParent(parentTopic, emptyArray(), topicRepository)
+            var parentTopic = topicService.getParentTopic(_topic)
+            topicService.updateTopicVersionFromParent(parentTopic, emptyArray())
             topicRepository.save(_topic)
 
             status.status = 1
@@ -100,14 +102,14 @@ class TopicController {
 
                 if (topicCandidate.isPresent) {
                     topicCandidate.get().orderNum = (topic.orderNum)
-                    if(isParentTopic) TopicService.updateTopicVersionFromParent(topicCandidate.get(), emptyArray<Int>(), topicRepository)
+                    if(isParentTopic) topicService.updateTopicVersionFromParent(topicCandidate.get(), emptyArray())
                     topicRepository.save(topicCandidate.get())
                 }
             }
 
             if(!isParentTopic){
-                var parentTopic = TopicService.getParentTopic(updTopic.get(0), topicRepository)
-                TopicService.updateTopicVersionFromParent(parentTopic, emptyArray<Int>(), topicRepository)
+                var parentTopic = topicService.getParentTopic(updTopic.get(0))
+                topicService.updateTopicVersionFromParent(parentTopic, emptyArray<Int>())
             }
 
             status.status = 1
@@ -137,17 +139,17 @@ class TopicController {
             for(topic in siblingTopics){
                 if((topic.orderNum ?: 0) > (delTopic.orderNum?:0)){
                     topic.orderNum = ((topic.orderNum?:0)-1)
-                    if(isParentTopic) TopicService.updateTopicVersionFromParent(topic, emptyArray(), topicRepository)
+                    if(isParentTopic) topicService.updateTopicVersionFromParent(topic, emptyArray())
                 }
             }
 
             if(!isParentTopic){
-                val parentTopic = TopicService.getParentTopic(delTopic, topicRepository)
-                TopicService.updateTopicVersionFromParent(parentTopic, emptyArray(), topicRepository)
+                val parentTopic = topicService.getParentTopic(delTopic)
+                topicService.updateTopicVersionFromParent(parentTopic, emptyArray())
             }
 
-            TopicService.deleteAllChildrenTopics(delTopic.id!!, topicRepository)
-            ProgramService.deleteRelTopic(delTopic, programRepository)
+            topicService.deleteAllChildrenTopics(delTopic.id!!)
+            programService.deleteRelTopic(delTopic)
         } else {
             status.status = 0
             status.message = "Topic does not exist!"

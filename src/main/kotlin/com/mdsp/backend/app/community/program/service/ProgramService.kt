@@ -6,12 +6,20 @@ import com.mdsp.backend.app.community.program.model.Program
 import com.mdsp.backend.app.community.topic.repository.ITopicRepository
 import com.mdsp.backend.app.community.topic.service.TopicService
 import com.mdsp.backend.app.community.topic.service.TopicTree
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 import java.util.*
 
+@Service
 class ProgramService {
-    companion object {
 
-        fun deleteRelTopic(delTopic: Topic, programRepository: IProgramRepository) {
+    @Autowired
+    lateinit var topicRepository: ITopicRepository
+
+    @Autowired
+    lateinit var programRepository: IProgramRepository
+
+    fun deleteRelTopic(delTopic: Topic) {
             val programs = programRepository.findAll()
             for(program in programs){
                 val topics = program.relativeTopics
@@ -27,7 +35,7 @@ class ProgramService {
             }
         }
 
-        fun getProgramTopicTree(program: Program, topicRepository: ITopicRepository): TopicTree {
+    fun getProgramTopicTree(program: Program): TopicTree {
             val rootTree = TopicTree(-1, null, arrayListOf(), "ROOT")
 //            val topicsArray: ArrayList<String> = program.relativeTopics
 
@@ -44,5 +52,4 @@ class ProgramService {
             rootTree.sortChildren()
             return rootTree
         }
-    }
 }

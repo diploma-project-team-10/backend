@@ -10,7 +10,7 @@ import java.util.*
 
 interface ICommunityQuizRepository: JpaRepository<CommunityQuiz, Long> {
 
-    fun findAllBy(pagePR: Pageable): Page<CommunityQuiz>?
-    fun findByIdAndDeletedAtIsNull(@Param("id") id: UUID?): Optional<CommunityQuiz>?
+    fun findAllBy(pagePR: Pageable): Page<CommunityQuiz>
+    fun findByIdAndDeletedAtIsNull(@Param("id") id: UUID?): Optional<CommunityQuiz>
 
 }

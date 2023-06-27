@@ -1,10 +1,10 @@
-package com.mdsp.backend.app.calendar.controller
+package com.mdsp.backend.trash.calendar.controller
 
-import com.mdsp.backend.app.calendar.model.CalendarEvent
-import com.mdsp.backend.app.calendar.model.Habit
-import com.mdsp.backend.app.calendar.model.payload.HabitResponse
-import com.mdsp.backend.app.calendar.repository.ICalendarEventRepository
-import com.mdsp.backend.app.calendar.repository.IHabitRepository
+import com.mdsp.backend.trash.calendar.model.CalendarEvent
+import com.mdsp.backend.trash.calendar.model.Habit
+import com.mdsp.backend.trash.calendar.model.payload.HabitResponse
+import com.mdsp.backend.trash.calendar.repository.ICalendarEventRepository
+import com.mdsp.backend.trash.calendar.repository.IHabitRepository
 import com.mdsp.backend.app.profile.repository.IProfileRepository
 import com.mdsp.backend.app.profile.service.ProfileService
 import com.mdsp.backend.app.system.config.FeignUserConfig

@@ -19,31 +19,26 @@ import kotlin.collections.ArrayList
     )
 )
 class CommunityQuiz: DateAudit {
+    constructor(
+        id: UUID?,
+        programId: UUID?
+    ){
+        this.id = id
+        this.programId = programId
+    }
+
+
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
         name = "UUID",
         strategy = "org.hibernate.id.UUIDGenerator"
     )
-    @Column(name = "id", updatable = false, nullable = false)
     var id: UUID? = null
 
-    @Column(name = "program_id")
     var programId: UUID? = null
-
-    @Type(type = "string-array")
-    @Column(
-        name = "student",
-        columnDefinition = "character varying(256)[]"
-    )
-    var student: Array<Array<String>>? = null
-
-    @Type(type = "string-array")
-    @Column(
-        name = "examinator",
-        columnDefinition = "character varying(256)[]"
-    )
-    var examinator: Array<Array<String>>? = null
+    var studentId: UUID? = null
+    var examinator: String? = null
 
     @Type(type = "jsonb")
     @Column(
@@ -55,21 +50,9 @@ class CommunityQuiz: DateAudit {
     @Column(name = "correctAnswers")
     var correctAnswers: Int? = null
 
-    constructor(
-        id: UUID?,
-        programId: UUID?
-    ){
-        this.id = id
-        this.programId = programId
-    }
     fun addQuestion(questions: GeneratedQuestion) { this.questions.add(questions) }
 
     fun getQuestionById(id: UUID): GeneratedQuestion?{
-        for(q in this.questions!!){
-            if(q.id == id){
-                return q
-            }
-        }
-        return null
+        return this.questions.firstOrNull { it.id == id }
     }
 }

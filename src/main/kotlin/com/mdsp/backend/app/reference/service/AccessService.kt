@@ -21,12 +21,6 @@ import kotlin.collections.ArrayList
 class AccessService {
 
     @Autowired
-    private lateinit var dataSourceConfig: DataSourceConfiguration
-
-    @Autowired
-    private lateinit var referenceRepository: IReferenceRepository
-
-    @Autowired
     private lateinit var accessRepository: IReferenceAccessRepository
 
     @Autowired

@@ -1,6 +1,6 @@
-package com.mdsp.backend.app.calendar.repository
+package com.mdsp.backend.trash.calendar.repository
 
-import com.mdsp.backend.app.calendar.model.Habit
+import com.mdsp.backend.trash.calendar.model.Habit
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort

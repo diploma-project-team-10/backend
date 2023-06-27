@@ -1,4 +1,4 @@
-package com.mdsp.backend.app.calendar.model
+package com.mdsp.backend.trash.calendar.model
 
 enum class ColorEnum {
     BLUE, RED, YELLOW, GREEN, PINK, ORANGE
