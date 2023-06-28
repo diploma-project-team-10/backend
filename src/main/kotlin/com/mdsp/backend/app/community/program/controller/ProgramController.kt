@@ -38,7 +38,7 @@ class ProgramController {
         programRepository.findByIdAndDeletedAtIsNull(programId)
 
     @PostMapping("/save")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     fun saveProgram(@Valid @RequestBody newProgram: Program): Status {
         val status = Status()
         status.status = 0
@@ -62,7 +62,7 @@ class ProgramController {
     }
 
     @DeleteMapping("/{programId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     fun deleteProgram(@PathVariable(value = "programId") programId: UUID): Status {
         val status = Status()
         status.status = 0

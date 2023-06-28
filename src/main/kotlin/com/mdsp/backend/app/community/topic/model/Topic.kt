@@ -47,11 +47,11 @@ class Topic : DateAudit {
             columnDefinition = "int[]"
     )
     @Type(type = "int-array")
-    var topicVersion: Array<Int>? = null
+    var topicVersion: Array<Int> = arrayOf()
     var rating: Int? = 1
 
     override fun toString(): String {
-        return "Title=${title} parentId=${parentId} orderNum=${orderNum} topicVersion=${Arrays.toString(topicVersion)}"
+        return "Title=${title} parentId=${parentId} orderNum=${orderNum} topicVersion=${topicVersion.joinToString(",")}"
     }
 
 }

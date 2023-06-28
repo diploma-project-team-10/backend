@@ -106,7 +106,10 @@ class ProfileService {
                 fioPrepare.joinToString(" ")
             )
         }
-
+        println(fioPrepare.joinToString(" "))
+        println(data["last_name"].toString())
+        println(data["middle_name"].toString())
+        println(data["first_name"].toString())
         record.setDataField(mutableMapOf("fio" to fioPrepare.joinToString(" ").trim()))
         return record
     }

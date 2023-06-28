@@ -8,12 +8,16 @@ import com.mdsp.backend.app.community.question.payload.Variable
 import com.mdsp.backend.app.community.question.payload.Variant
 import com.mdsp.backend.app.community.question.repository.IQuestionsRepository
 import com.mdsp.backend.app.community.topic.repository.ITopicRepository
+import com.mdsp.backend.app.profile.repository.IProfileRepository
+import com.mdsp.backend.app.profile.service.ProfileService
 import com.mdsp.backend.app.system.model.Status
+import com.mdsp.backend.app.user.model.UserPrincipal
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Async
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import java.sql.Timestamp
 import java.util.*
@@ -32,14 +36,44 @@ class QuestionController {
     @Autowired
     lateinit var questionService: QuestionService
 
+    @Autowired
+    lateinit var profileRepository: IProfileRepository
+
+    @Autowired
+    lateinit var profileService: ProfileService
+
     @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
     fun getQuestions(
         @RequestParam(value = "page") page: Int = 1,
-        @RequestParam(value = "size") size: Int = 20
+        @RequestParam(value = "size") size: Int = 20,
+        @RequestParam(value = "programId") programId: UUID
     ): Page<Questions> {
         val pagePR: PageRequest = PageRequest.of(page - 1, size)
-        return questionsRepository.findAllByDeletedAtIsNullOrderByTopicVersion(pagePR)
+        return questionsRepository.findAllByDeletedAtIsNullOrderByTopicVersion(programId, pagePR)
+    }
+
+    @GetMapping("/my-list")
+    @PreAuthorize("isAuthenticated()")
+    fun getMyQuestions(
+        @RequestParam(value = "page") page: Int = 1,
+        @RequestParam(value = "size") size: Int = 20,
+        authentication: Authentication
+    ): Page<Questions> {
+        val profileId = profileRepository.findByUsernameAndDeletedAtIsNull(authentication.name).get().getId()
+        val pagePR: PageRequest = PageRequest.of(page - 1, size)
+        return questionsRepository.findAllByOwnerDeletedAtIsNullOrderByTopicVersion(profileId.toString(), pagePR)
+    }
+    @GetMapping("/list/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    fun getQuestionsByUserId(
+        @RequestParam(value = "page") page: Int = 1,
+        @RequestParam(value = "size") size: Int = 20,
+        @PathVariable userId: UUID,
+        authentication: Authentication,
+    ): Page<Questions> {
+        val pagePR: PageRequest = PageRequest.of(page - 1, size)
+        return questionsRepository.findAllByOwnerDeletedAtIsNullOrderByTopicVersion(userId.toString(), pagePR)
     }
 
     @GetMapping("/filter")
@@ -59,8 +93,48 @@ class QuestionController {
     @PreAuthorize("isAuthenticated()")
     fun getReference(@PathVariable(value = "problemId") problemId: UUID) = questionsRepository.findByIdAndDeletedAtIsNull(problemId)
 
+    @PostMapping("/create/not-generated")
+    @PreAuthorize("hasRole('COMMUNITY_ADMIN') or hasRole('ADMIN')")
+    fun saveQuestion(
+        @Valid @RequestBody newQuestion: Questions,
+        authentication: Authentication
+    ): Status {
+        val status = Status()
+        status.message = ""
+        status.status = 0
+        if (newQuestion.topicId == null) {
+            status.message = "Select Topic!"
+            return status
+        }
+
+        val children = topicRepository.existsByIdAndDeletedAtIsNull(newQuestion.topicId!!)
+        if(children){
+            status.status = 0
+            status.message = "Topic doesn't exists"
+            return status
+        }
+
+        if (newQuestion.errorText.isEmpty()) {
+            if (newQuestion.id != null) {
+                newQuestion.editor = (profileService.getProfileReferenceById((authentication.principal as UserPrincipal).id))
+                newQuestion.updatedAt = (Timestamp(System.currentTimeMillis()))
+                status.message = "Question saved!"
+            } else {
+                newQuestion.creator = (profileService.getProfileReferenceById((authentication.principal as UserPrincipal).id))
+                status.message = "Question created!"
+            }
+            questionsRepository.save(newQuestion)
+            status.status = 1
+        } else {
+            status.message = newQuestion.errorText
+        }
+
+        status.value = newQuestion
+        return status
+    }
+
     @DeleteMapping("/delete/{problemId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('COMMUNITY_ADMIN') or hasRole('ADMIN')")
     fun deleteProblem(@PathVariable(value = "problemId") problemId: UUID): Status {
         val status = Status()
         val questionCandidate: Optional<Questions> = questionsRepository.findByIdAndDeletedAtIsNull(problemId)
@@ -77,53 +151,6 @@ class QuestionController {
         status.message = "Question deleted!"
         return status
     }
-
-    @PostMapping("/create/not-generated")
-    @PreAuthorize("isAuthenticated()")
-    fun saveQuestion(
-        @Valid @RequestBody newQuestion: Questions,
-    ): Status {
-        val status = Status()
-        status.message = ""
-        status.status = 0
-        if (newQuestion.topicId == null) {
-            status.message = "Select Topic!"
-            return status
-        }
-
-        val children = topicRepository.findAllByParentIdAndDeletedAtIsNull(newQuestion.topicId)
-        if(children.size != 0){
-            status.status = 0
-            status.message = "Children topic exist!"
-            return status
-        }
-
-        if (newQuestion.errorText.isEmpty()) {
-            if (newQuestion.id != null) {
-                newQuestion.updatedAt = (Timestamp(System.currentTimeMillis()))
-                status.message = "Question saved!"
-            } else {
-                status.message = "Question created!"
-            }
-//            questionUpdateRating()
-            questionsRepository.save(newQuestion)
-            status.status = 1
-        } else {
-            status.message = newQuestion.errorText
-        }
-
-        status.value = newQuestion
-        return status
-    }
-
-//    @Async
-//    fun questionUpdateRating() {
-//        questionsRepository.findAllByDeletedAtIsNullOrderByTopicVersion().forEachIndexed { index, question ->
-//            question.rating = 600 + (index + 1) * 15
-//            questionsRepository.save(question)
-//        }
-//    }
-
 
     @PostMapping("/generated")
     @PreAuthorize("isAuthenticated()")

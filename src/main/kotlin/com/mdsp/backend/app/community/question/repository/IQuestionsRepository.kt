@@ -24,16 +24,26 @@ interface IQuestionsRepository : JpaRepository<Questions, Long> {
     @Query("SELECT * FROM community_questions AS q \n" +
             "            INNER JOIN community_topics AS t  \n" +
             "            ON q.topic_id = t.id \n" +
-            "            WHERE q.deleted_at is null \n" +
+            "            WHERE q.deleted_at is null " +
+            "            AND t.program_id = :programId " +
             "            ORDER BY t.topic_version ASC", nativeQuery = true)
-    fun findAllByDeletedAtIsNullOrderByTopicVersion(page: Pageable): Page<Questions>
+    fun findAllByDeletedAtIsNullOrderByTopicVersion(programId: UUID, page: Pageable): Page<Questions>
 
     @Query("SELECT * FROM community_questions AS q \n" +
             "            INNER JOIN community_topics AS t  \n" +
             "            ON q.topic_id = t.id \n" +
             "            WHERE q.deleted_at is null \n" +
+            "            AND t.program_id = :programId " +
             "            ORDER BY t.topic_version ASC", nativeQuery = true)
-    fun findAllByDeletedAtIsNullOrderByTopicVersion(): List<Questions>
+    fun findAllByDeletedAtIsNullOrderByTopicVersion(programId: UUID): List<Questions>
+
+    @Query("SELECT * FROM community_questions AS q \n" +
+            "            INNER JOIN community_topics AS t  \n" +
+            "            ON q.topic_id = t.id \n" +
+            "            WHERE q.deleted_at is null \n" +
+            "            AND db_array_key_exists(:userId, q.creator) = 1 " +
+            "            ORDER BY t.topic_version ASC", nativeQuery = true)
+    fun findAllByOwnerDeletedAtIsNullOrderByTopicVersion(userId: String, page: Pageable ): Page<Questions>
 
     @Transactional
     @Modifying(clearAutomatically = true)

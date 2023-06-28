@@ -1,16 +1,13 @@
 package com.mdsp.backend.app.community.quiz.service
 
 import com.mdsp.backend.app.community.analytics.service.AnalyticsService
-import com.mdsp.backend.app.community.program.model.Program
 import com.mdsp.backend.app.community.program.repository.IProgramRepository
 import com.mdsp.backend.app.community.program.service.ProgramService
 import com.mdsp.backend.app.community.question.payload.GeneratedQuestion
 import com.mdsp.backend.app.community.question.repository.IQuestionsRepository
 import com.mdsp.backend.app.community.quiz.model.CommunityQuiz
-import com.mdsp.backend.app.community.quiz.model.UserRating
 import com.mdsp.backend.app.community.quiz.payload.JsonQuiz
 import com.mdsp.backend.app.community.quiz.repository.ICommunityQuizRepository
-import com.mdsp.backend.app.community.quiz.repository.IRatingRepository
 import com.mdsp.backend.app.community.topic.model.Topic
 import com.mdsp.backend.app.community.topic.repository.ITopicRepository
 import com.mdsp.backend.app.system.model.Status
@@ -47,7 +44,7 @@ class QuizService {
         // Retrieve the user's rating from the UserRating table
         var userRating = ratingService.getUserRatingByProgramId(userId, quizSession.programId!!).rating!!
 
-        if (quizPayload.questions != null) {
+        if (quizPayload.questions?.id != null) {
             val isCorrect = checkAnswer(quizPayload)
             analyticsService.updateUserAnalyticResult(userId, quizPayload.questions!!.id!!, isCorrect)
 
@@ -73,7 +70,7 @@ class QuizService {
     }
 
     fun getRandomQuestionByTopic(topicId: UUID): GeneratedQuestion {
-        val questions = questionsRepository.findQuestionByTopic(topicId)
+        val questions = questionsRepository.findAllByTopicIdAndDeletedAtIsNull(topicId)
         if (questions.size == 0) return GeneratedQuestion()
         val randomInteger = (0 until (questions.size - 1)).random()
         val resultQuestions = questions[randomInteger].clone()

@@ -4,9 +4,13 @@ import com.mdsp.backend.app.community.program.service.ProgramService
 import com.mdsp.backend.app.community.topic.model.Topic
 import com.mdsp.backend.app.community.topic.repository.ITopicRepository
 import com.mdsp.backend.app.community.topic.service.TopicService
+import com.mdsp.backend.app.profile.repository.IProfileRepository
+import com.mdsp.backend.app.profile.service.ProfileService
 import com.mdsp.backend.app.system.model.Status
+import com.mdsp.backend.app.user.model.UserPrincipal
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import java.util.*
 import javax.validation.Valid
@@ -18,24 +22,26 @@ class TopicController {
     lateinit var topicRepository: ITopicRepository
 
     @Autowired
-    lateinit var programService: ProgramService
-
-    @Autowired
     lateinit var topicService: TopicService
 
+    @Autowired
+    lateinit var profileRepository: IProfileRepository
 
+    @Autowired
+    lateinit var profileService: ProfileService
     @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
     fun getTopics() = topicRepository.findAllByDeletedAtIsNullOrderByOrderNum()
 
     @GetMapping("/list/{programId}")
     @PreAuthorize("isAuthenticated()")
-    fun getTopicsByProgramId(@PathVariable programId: UUID) = topicRepository.findAllByProgramIdAndDeletedAtIsNullOrderByOrderNum(programId)
+    fun getTopicsByProgramId(@PathVariable programId: UUID) = topicRepository.findAllByProgramIdAndDeletedAtIsNullOrderByTopicVersion(programId)
 
     @PostMapping("/new")
     @PreAuthorize("hasRole('COMMUNITY_ADMIN') or hasRole('ADMIN')")
     fun createTopic(
         @Valid @RequestBody newTopic: Topic,
+        authentication: Authentication
     ): Status {
         val status = Status()
         status.status = 0
@@ -54,22 +60,21 @@ class TopicController {
             )
 
         if(!topicCandidate.isPresent) {
-            val _topic = Topic(
+            val topic = Topic(
                     null,
                     newTopic.programId,
                     newTopic.parentId,
                     newTopic.title!!.trim()
             )
-            topicRepository.save(_topic)
-            var siblingTopics = topicRepository.findAllByParentIdAndDeletedAtIsNull(_topic.parentId)
-            _topic.orderNum = (siblingTopics.size)
-            var parentTopic = topicService.getParentTopic(_topic)
-            topicService.updateTopicVersionFromParent(parentTopic, emptyArray())
-            topicRepository.save(_topic)
+            topic.creator = (profileService.getProfileReferenceById((authentication.principal as UserPrincipal).id))
+            topic.orderNum = topicRepository.countAllByProgramIdAndParentIdAndDeletedAtIsNull(newTopic.programId!!, topic.parentId)
+            topicRepository.save(topic)
+
+            topicService.updateTopicVersionAndRating(topic)
 
             status.status = 1
             status.message = "New Topic created!"
-            status.value = _topic.id
+            status.value = topic.id
             return status
         } else {
             status.status = 0
@@ -111,20 +116,21 @@ class TopicController {
         status.message = ""
 
         if (updTopic.isNotEmpty()) {
-            var isParentTopic: Boolean = updTopic.get(0).parentId == null
+            val isParentTopic: Boolean = updTopic[0].parentId == null
             for(topic in updTopic) {
                 val topicCandidate: Optional<Topic> = topicRepository.findByIdAndDeletedAtIsNull(topic.id!!)
 
                 if (topicCandidate.isPresent) {
                     topicCandidate.get().orderNum = (topic.orderNum)
-                    if(isParentTopic) topicService.updateTopicVersionFromParent(topicCandidate.get(), emptyArray())
+                    if(isParentTopic) {
+                        topicService.updateTopicVersionAndRating(topicCandidate.get())
+                    }
                     topicRepository.save(topicCandidate.get())
                 }
             }
 
             if(!isParentTopic){
-                var parentTopic = topicService.getParentTopic(updTopic.get(0))
-                topicService.updateTopicVersionFromParent(parentTopic, emptyArray<Int>())
+                topicService.updateTopicVersionAndRating(topicService.getParentTopic(updTopic[0]))
             }
 
             status.status = 1
@@ -150,21 +156,22 @@ class TopicController {
             val delTopic = topicCandidate.get()
             val isParentTopic: Boolean = delTopic.parentId == null
 
-            val siblingTopics = topicRepository.findAllByParentIdAndDeletedAtIsNull(delTopic.parentId)
+            val siblingTopics = topicRepository.findAllByProgramIdAndParentIdAndDeletedAtIsNull(delTopic.programId!!, delTopic.parentId)
+
             for(topic in siblingTopics){
                 if((topic.orderNum ?: 0) > (delTopic.orderNum?:0)){
                     topic.orderNum = ((topic.orderNum?:0)-1)
-                    if(isParentTopic) topicService.updateTopicVersionFromParent(topic, emptyArray())
+                    if(isParentTopic) {
+                        topicService.updateTopicVersionAndRating(topic)
+                    }
                 }
             }
 
-            if(!isParentTopic){
-                val parentTopic = topicService.getParentTopic(delTopic)
-                topicService.updateTopicVersionFromParent(parentTopic, emptyArray())
+            if(!isParentTopic) {
+                topicService.updateTopicVersionAndRating(topicService.getParentTopic(delTopic))
             }
 
             topicService.deleteAllChildrenTopics(delTopic.id!!)
-            programService.deleteRelTopic(delTopic)
         } else {
             status.status = 0
             status.message = "Topic does not exist!"

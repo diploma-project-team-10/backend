@@ -8,13 +8,14 @@ import java.util.*
 interface ITopicRepository: JpaRepository<Topic, Long> {
     fun findAllByDeletedAtIsNullOrderByOrderNum(): ArrayList<Topic>
 
-    fun findByIdAndDeletedAtIsNull(@Param("id") id: UUID): Optional<Topic>
+    fun findByIdAndDeletedAtIsNull(id: UUID): Optional<Topic>
 
-    fun findByTitleIgnoreCaseAndParentIdAndDeletedAtIsNull(@Param("title") title: String, @Param("parentId")  parentId: UUID?): Optional<Topic>
+    fun countAllByProgramIdAndParentIdAndDeletedAtIsNull(programId: UUID, parentId: UUID?): Int
 
-    fun findAllByParentIdAndDeletedAtIsNull(@Param("id") id: UUID?): ArrayList<Topic>
-
-    fun findAllByDeletedAtIsNull(): ArrayList<Topic>;
+    fun findAllByDeletedAtIsNull(): ArrayList<Topic>
     fun findByTitleIgnoreCaseAndParentIdAndProgramIdAndDeletedAtIsNull(title: String, parentId: UUID?, programId: UUID): Optional<Topic>
-    fun findAllByProgramIdAndDeletedAtIsNullOrderByOrderNum(programId: UUID): List<Topic>
+    fun findAllByProgramIdAndDeletedAtIsNullOrderByTopicVersion(programId: UUID): List<Topic>
+    fun findAllByParentIdAndDeletedAtIsNull(parentId: UUID): ArrayList<Topic>
+    fun findAllByProgramIdAndParentIdAndDeletedAtIsNull(programId: UUID, parentId: UUID?): ArrayList<Topic>
+    fun existsByIdAndDeletedAtIsNull(topicId: UUID): Boolean
 }

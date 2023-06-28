@@ -388,29 +388,8 @@ class ProfileV2Controller {
                 refRecord.setDataField(addRecord)
                 refRecord.setEditor(profileService.getProfileReferenceById(recordId))
 
-                if (!access) {
-                    addRecord.remove("fio")
-                    addRecord.remove("first_name")
-                    addRecord.remove("middle_name")
-                    refRecord.removeKeyData("fio")
-                    refRecord.removeKeyData("first_name")
-                    refRecord.removeKeyData("middle_name")
-                }
-                else {
-                    if (addRecord.containsKey("roles")) {
-                        val roles = addRecord["roles"] as ArrayList<MutableMap<String, Any?>>
-                        val childRoles = rolesGroupService.getChildRolesUUIDByProfile(profileId)
-                        if (profileId == recordId) {
-                            childRoles.addAll(rolesGroupService.getRolesUUIDByProfile(profileId))
-                        }
-                        for (role in roles) {
-                            if (!childRoles.contains(role["id"] as String)) {
-                                addRecord.remove("roles")
-                                break
-                            }
-                        }
-                    }
-                }
+                addRecord.remove("roles")
+                refRecord.removeKeyData("roles")
 
                 if (refRecord.getDataField().containsKey("username") && access) {
                     if (!ProfileService.isEmailValid(refRecord.getDataField()["username"].toString().lowercase())) {
