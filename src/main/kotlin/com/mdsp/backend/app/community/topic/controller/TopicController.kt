@@ -28,6 +28,10 @@ class TopicController {
     @PreAuthorize("isAuthenticated()")
     fun getTopics() = topicRepository.findAllByDeletedAtIsNullOrderByOrderNum()
 
+    @GetMapping("/list/{programId}")
+    @PreAuthorize("isAuthenticated()")
+    fun getTopicsByProgramId(@PathVariable programId: UUID) = topicRepository.findAllByProgramIdAndDeletedAtIsNullOrderByOrderNum(programId)
+
     @PostMapping("/new")
     @PreAuthorize("hasRole('COMMUNITY_ADMIN') or hasRole('ADMIN')")
     fun createTopic(
@@ -37,11 +41,22 @@ class TopicController {
         status.status = 0
         status.message = ""
 
-        val topicCandidate: Optional<Topic> = topicRepository.findByTitleIgnoreCaseAndParentIdAndDeletedAtIsNull(newTopic.title!!, newTopic.parentId)
+        if (newTopic.programId == null) {
+            status.message = "Program doesn't exist!"
+            return status
+        }
+
+        val topicCandidate: Optional<Topic> =
+            topicRepository.findByTitleIgnoreCaseAndParentIdAndProgramIdAndDeletedAtIsNull(
+                newTopic.title!!,
+                newTopic.parentId,
+                newTopic.programId!!
+            )
 
         if(!topicCandidate.isPresent) {
             val _topic = Topic(
                     null,
+                    newTopic.programId,
                     newTopic.parentId,
                     newTopic.title!!.trim()
             )

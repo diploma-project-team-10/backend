@@ -14,7 +14,7 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/project/community/quiz")
-class QuizController {
+class ComunityQuizController {
 
     @Autowired
     lateinit var quizRepository: ICommunityQuizRepository

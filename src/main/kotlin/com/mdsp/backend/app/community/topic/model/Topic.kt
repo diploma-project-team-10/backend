@@ -20,8 +20,9 @@ class Topic : DateAudit {
 
     constructor()
 
-    constructor(id: UUID?, parentId: UUID?, title: String) {
+    constructor(id: UUID?, programId:UUID?, parentId: UUID?, title: String) {
         this.id = id
+        this.programId = programId
         this.parentId = parentId
         this.title = title
     }
@@ -35,6 +36,7 @@ class Topic : DateAudit {
     var id: UUID? = null
 
     var parentId: UUID? = null
+    var programId: UUID? = null
 
     var title: String? = null
 

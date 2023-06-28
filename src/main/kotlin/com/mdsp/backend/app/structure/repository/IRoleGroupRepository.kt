@@ -17,4 +17,5 @@ interface IRoleGroupRepository: JpaRepository<RolesGroup, UUID> {
     fun findByIdAndDeletedAtIsNull(@Param("id")  id: UUID): Optional<RolesGroup>
 
     fun findAllByKeyAndDeletedAtIsNull(key: String): ArrayList<RolesGroup>
+    fun findAllByKeyInAndDeletedAtIsNull(key: List<String>): List<RolesGroup>
 }

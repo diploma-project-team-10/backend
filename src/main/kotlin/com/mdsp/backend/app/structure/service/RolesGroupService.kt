@@ -9,6 +9,7 @@ import com.mdsp.backend.app.structure.repository.IRoleGroupRepository
 import com.mdsp.backend.app.structure.repository.IStructureRepository
 import com.mdsp.backend.app.system.config.DataSourceConfiguration
 import com.mdsp.backend.app.system.model.GridQuery
+import com.mdsp.backend.app.system.model.Status
 import com.mdsp.backend.app.system.model.Util
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -29,7 +30,7 @@ class RolesGroupService {
     @Autowired
     lateinit var dataSourceConfig: DataSourceConfiguration
 
-    fun setMembers(dataRoles: ArrayList<MutableMap<String, Any?>>, profileId: UUID, fio: String) {
+    fun setMembers(dataRoles: List<MutableMap<String, Any?>>, profileId: UUID, fio: String) {
         val roles = dataRoles
         val referenceRoles = referenceRepository.findByIdAndDeletedAtIsNull(UUID.fromString("00000000-0000-0000-0000-000000000019"))
         if (referenceRoles.isPresent) {
@@ -100,6 +101,18 @@ class RolesGroupService {
                 }
             }
         }
+    }
+    fun setMember(roles: List<String>, profileId: UUID, fio: String): Status {
+        println("setMember")
+        val dataRoles = roleGroupRepository.findAllByKeyInAndDeletedAtIsNull(roles).map {
+            mutableMapOf<String, Any?>("id" to it.getId(), "value" to it.getKey())
+        }
+        println(dataRoles)
+        println(profileId)
+        println(fio)
+        setMembers(dataRoles, profileId, fio)
+
+        return Status(1, "Success")
     }
 
     fun getRolesByProfileMap(profileId: UUID, fields: Array<String> = arrayOf()): MutableList<MutableMap<String, Any?>> {

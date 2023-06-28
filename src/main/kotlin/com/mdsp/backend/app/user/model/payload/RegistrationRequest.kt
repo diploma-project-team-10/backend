@@ -7,6 +7,7 @@ class RegistrationRequest {
     private var registerAsAdmin: Boolean? = null
     var firstName: String? = null
     var lastName: String? = null
+    var type: String? = null
 
     constructor(username: String, email: String,
                 password: String, registerAsAdmin: Boolean) {

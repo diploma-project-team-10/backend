@@ -15,4 +15,6 @@ interface ITopicRepository: JpaRepository<Topic, Long> {
     fun findAllByParentIdAndDeletedAtIsNull(@Param("id") id: UUID?): ArrayList<Topic>
 
     fun findAllByDeletedAtIsNull(): ArrayList<Topic>;
+    fun findByTitleIgnoreCaseAndParentIdAndProgramIdAndDeletedAtIsNull(title: String, parentId: UUID?, programId: UUID): Optional<Topic>
+    fun findAllByProgramIdAndDeletedAtIsNullOrderByOrderNum(programId: UUID): List<Topic>
 }

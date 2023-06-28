@@ -157,7 +157,7 @@ class ProfileV2Controller {
 
 
                 if (refRecord.getDataField().containsKey("username")) {
-                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                    if (!ProfileService.isEmailValid(refRecord.getDataField()["username"].toString().lowercase())) {
                         status.status = 0
                         status.message = "Username is not valid!"
                         return ResponseEntity(status, HttpStatus.OK)
@@ -264,7 +264,7 @@ class ProfileV2Controller {
 
 
                 if (refRecord.getDataField().containsKey("username")) {
-                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                    if (!ProfileService.isEmailValid(refRecord.getDataField()["username"].toString().lowercase())) {
                         status.status = 0
                         status.message = "Username is not valid!"
                         return ResponseEntity(status, HttpStatus.OK)
@@ -413,7 +413,7 @@ class ProfileV2Controller {
                 }
 
                 if (refRecord.getDataField().containsKey("username") && access) {
-                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                    if (!ProfileService.isEmailValid(refRecord.getDataField()["username"].toString().lowercase())) {
                         status.status = 0
                         status.message = "Username is not valid!"
                         return ResponseEntity(status, HttpStatus.OK)
@@ -516,7 +516,7 @@ class ProfileV2Controller {
 
 
                 if (refRecord.getDataField().containsKey("username")) {
-                    if (!ProfileService.isUsernameValid(refRecord.getDataField()["username"].toString().lowercase())) {
+                    if (!ProfileService.isEmailValid(refRecord.getDataField()["username"].toString().lowercase())) {
                         status.status = 0
                         status.message = "Username is not valid!"
                         return ResponseEntity(status, HttpStatus.OK)

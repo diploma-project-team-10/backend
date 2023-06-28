@@ -3,6 +3,7 @@ package com.mdsp.backend.app.user.security.service
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import com.mdsp.backend.app.profile.model.Profile
 import com.mdsp.backend.app.profile.repository.IProfileRepository
+import com.mdsp.backend.app.structure.service.RolesGroupService
 import com.mdsp.backend.app.system.model.Status
 import com.mdsp.backend.app.user.exception.PasswordResetLinkException
 import com.mdsp.backend.app.user.exception.ResourceAlreadyInUseException
@@ -65,6 +66,9 @@ class AuthService {
 
     @Autowired
     lateinit var googleService: GoogleService
+
+    @Autowired
+    lateinit var rolesGroupService: RolesGroupService
 
     fun authenticateUser(loginRequest: User, withPassword: Boolean = true): Optional<Authentication> {
         if (!withPassword) {
@@ -199,12 +203,19 @@ class AuthService {
         val newUser = Profile()
         newUser.setFirstName(newRegistrationRequest.firstName)
         newUser.setLastName(newRegistrationRequest.lastName)
+        newUser.setFio("")
         newUser.setEmail(newRegistrationRequest.getEmail())
         newUser.setPassword(encoder.encode(newRegistrationRequest.getPassword()))
         newUser.setUsername(newRegistrationRequest.getEmail())
         newUser.setEmailVerified(true)
         newUser.setEnabled(true)
         profileRepository.save(newUser)
+        rolesGroupService.setMember(
+            listOfNotNull(newRegistrationRequest.type),
+            newUser.getId()!!,
+            newUser.getFio()
+        )
+
         return Optional.ofNullable(newUser)
     }
 

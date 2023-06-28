@@ -19,9 +19,11 @@ class ProgramController {
     lateinit var programRepository: IProgramRepository
 
     @GetMapping("/list")
+    @PreAuthorize("isAuthenticated()")
     fun getPrograms() = programRepository.findAllByDeletedAtIsNull()
 
     @GetMapping("/list1")
+    @PreAuthorize("isAuthenticated()")
     fun getPrograms(
         @RequestParam(value = "page") page: Int,
         @RequestParam(value = "size") size: Int
@@ -72,40 +74,6 @@ class ProgramController {
             status.status = 1
             status.message = "Program deleted!"
         }
-        return status
-    }
-
-    @PostMapping("generate")
-    @PreAuthorize("isAuthenticated()")
-    fun generateQuiz(@Valid @RequestBody program: Program): Status {
-        val status = Status()
-        status.status = 0
-        status.message = ""
-////        println("Generate Quiz")
-//        var programCandidate: Optional<Program> = programRepository.findByIdAndDeletedAtIsNull(program.getId()!!)
-//        if(programCandidate.isPresent){
-////            println("Program is Present")
-//            var relativeTopics: Array<String> = programCandidate.get().getRelativeTopics()!!
-//            var questions: ArrayList<Questions> = arrayListOf()
-//            for(topic in relativeTopics) {
-//                var topic_id: UUID = UUID.fromString(topic)
-//                var list:ArrayList<Questions> = questionsRepository.findQuestionTopicByIdAndType(topic_id, 1)
-//                if(list !== null) questions.addAll(list)
-//            }
-//            var result = ProgramService.getGeneratedTest(questions)
-//            status.value = result
-//            for(question in result){
-//                println(question.getVariants())
-//            }
-//        }else{
-//            status.message = "Program does not exist!"
-//            return status
-//        }
-
-//        status.message = "Succesfull"
-        status.message = "Comming Soon"
-        status.status = 1
-
         return status
     }
 }
